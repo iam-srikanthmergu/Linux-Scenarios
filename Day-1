@@ -1,0 +1,207 @@
+# Day 1: Linux Fundamentals for DevOps (Real-Time + Interview Focus)
+
+## Why this matters
+
+In DevOps, Linux is part of everything you do.
+
+You don’t “use Linux separately” — you use it while:
+- Debugging application issues
+- Checking logs
+- Investigating failures
+- Managing servers
+
+In interviews, you will not be asked direct questions.
+
+You will be given situations.
+
+---
+
+## How to think in Linux (Most important skill)
+
+Before jumping into commands, always think:
+
+1. Where am I?
+2. What am I looking for?
+3. Where is it usually located?
+4. What changed recently?
+
+This thinking is what interviewers expect.
+
+---
+
+## Scenario 1: Logs are not visible in production
+
+You log into a server.
+
+The application team says:
+“Logs are not being generated.”
+
+---
+
+### Step-by-step approach
+
+Step 1: Check current location  
+pwd  
+
+Step 2: List files (focus on latest changes)  
+ls -lrt  
+
+Step 3: Move to standard log directories  
+cd /var/log  
+
+Step 4: Identify relevant logs  
+ls -lrt  
+
+Step 5: If not found, search  
+find / -name "*.log" 2>/dev/null  
+
+---
+
+### Real-world insight
+
+In many cases, logs are:
+- Written in custom directories  
+- Misconfigured  
+- Not generated due to permission issues  
+
+---
+
+## Core Linux commands every DevOps engineer uses
+
+### 1. Navigation & File Discovery
+
+| Command | Why it matters |
+|--------|--------------|
+| pwd | Know current path |
+| ls -lrt | Identify recent changes |
+| cd | Move quickly across system |
+| find | Locate files when unknown |
+
+---
+
+### 2. Log Analysis (very important in real projects)
+
+| Command | Use case |
+|--------|--------|
+| cat | Quick file view |
+| less | Read large files safely |
+| tail -f | Monitor logs in real time |
+
+Example:
+tail -f app.log
+
+---
+
+### 3. Process Debugging
+
+#### Scenario:
+Application is down or not responding
+
+Commands:
+ps -ef | grep <app>  
+top  
+
+To stop process:
+kill -9 <pid>  
+
+---
+
+### What interviewer expects
+
+- Can you identify the process?
+- Do you know how to stop or restart it safely?
+
+---
+
+### 4. Disk Space Issues
+
+#### Scenario:
+Application suddenly stopped working
+
+Commands:
+df -h  
+du -sh *  
+
+---
+
+### Real-world insight
+
+Disk full is one of the most common production issues.
+
+---
+
+### 5. Permissions (frequent interview topic)
+
+Commands:
+ls -l  
+chmod  
+chown  
+
+---
+
+### Scenario:
+Application cannot write logs
+
+Most likely reason:
+Permission issue
+
+---
+
+## How everything connects in real scenarios
+
+Example:
+
+Logs not generating →  
+Check path →  
+Check permissions →  
+Check disk space →  
+Check process  
+
+This is how real debugging works.
+
+---
+
+## Common mistakes candidates make
+
+- Treating commands as theory  
+- Not understanding real use cases  
+- Jumping into random commands  
+- Not checking logs first  
+
+---
+
+## Interview Answer (Strong and practical)
+
+“In my day-to-day work, I use Linux mainly for debugging issues.
+
+For example, if logs are not visible, I start by navigating to standard locations like /var/log and use `ls -lrt` to identify recent files.
+
+If needed, I use `find` to locate logs.
+
+For system issues, I check processes using `ps` and `top`, and disk usage using `df -h`.
+
+My approach is always to understand the problem first and then use the appropriate commands based on the situation.”
+
+---
+
+## Practice Questions (Very Important)
+
+Try answering these:
+
+1. Logs are not generating — what will you check?
+2. Application is slow — what Linux commands will you use?
+3. Disk is full — how will you identify large files?
+4. Process is stuck — how will you handle it?
+
+---
+
+## Key takeaway
+
+Linux is not about commands.
+
+It is about:
+- Understanding the system
+- Knowing where to look
+- Debugging step by step
+
+If you can explain your approach clearly, you can clear most DevOps interviews.
