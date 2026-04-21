@@ -813,5 +813,194 @@ Application failed to connect because DB port was blocked in firewall. After ope
 **Key point:**
 Always verify network → port → service → credentials in order.
 
+## 21. A user cannot access a file even though permissions look correct. What could be wrong?
+
+**Answer:**
+
+First, check file permissions:
+
+```bash id="i2p9gk"
+ls -l file.txt
+```
+
+Even if permissions look correct, I verify:
+
+**1. Directory permissions:**
+
+```bash id="l2xt5s"
+ls -ld <directory>
+```
+
+* User needs execute (`x`) permission on directory to access files inside
+
+**2. Ownership:**
+
+```bash id="l7k0i3"
+ls -l file.txt
+```
+
+* Check if user belongs to the correct group
+
+**3. ACL (Access Control List):**
+
+```bash id="1qz6wa"
+getfacl file.txt
+```
+
+**4. SELinux (if enabled):**
+
+```bash id="5mn2d1"
+getenforce
+```
+
+**Real scenario:**
+User couldn’t access a file even with 777 permissions because the parent directory didn’t have execute permission.
+
+**Key point:**
+Access depends on both file and directory permissions, not just the file itself.
+
+## 22. What is the difference between chmod 777 and chmod 755 in real-world impact?
+
+**Answer:**
+
+```bash id="q4zdp2"
+chmod 777 file
+```
+
+* Read, write, execute for everyone
+* Not secure (any user can modify/delete)
+
+```bash id="ypt7pn"
+chmod 755 file
+```
+
+* Owner: full access
+* Others: read and execute only
+
+**Explanation:**
+
+* 777 → open access, risky
+* 755 → controlled access, safer
+
+**Real scenario:**
+A script was given 777 permission for quick testing but later restricted to 755 to prevent unauthorized modifications.
+
+**Key point:**
+Avoid 777 in production. Follow least privilege principle.
+
+## 23. How do you give sudo access to a user safely?
+
+**Answer:**
+
+Add user to sudo group:
+
+```bash id="f8h4tf"
+usermod -aG sudo username
+```
+
+Or edit sudoers file safely:
+
+```bash id="x7x7bw"
+visudo
+```
+
+Add entry:
+
+```id="mjxm9r"
+username ALL=(ALL) NOPASSWD:ALL
+```
+
+**Explanation:**
+
+* `visudo` prevents syntax errors
+* You can restrict commands instead of giving full access
+
+**Real scenario:**
+Instead of giving full sudo, I allowed a user to restart only a specific service using limited sudo rules.
+
+**Key point:**
+Always give minimum required privileges instead of full admin access.
+
+## 24. What is sticky bit, SUID, SGID with real-time usage?
+
+**Answer:**
+
+**Sticky Bit:**
+
+```bash id="0n0g7j"
+chmod +t /shared
+```
+
+* Users can only delete their own files
+* Common in `/tmp`
+
+**SUID (Set User ID):**
+
+```bash id="zpr8r6"
+chmod u+s file
+```
+
+* Runs command with file owner’s privileges
+
+**SGID (Set Group ID):**
+
+```bash id="7y1r7q"
+chmod g+s directory
+```
+
+* Files inherit group ownership
+
+**Real scenario:**
+
+* Sticky bit used in shared directories
+* SGID used in team project folders to maintain group ownership
+
+**Key point:**
+These are used to control permissions beyond normal chmod.
+
+## 25. A script runs manually but fails in cron. Why?
+
+**Answer:**
+
+Most common issue: **environment difference**
+
+Check cron jobs:
+
+```bash id="fd7g9k"
+crontab -l
+```
+
+Check logs:
+
+```bash id="j2l1zt"
+grep CRON /var/log/syslog
+```
+
+**Common problems:**
+
+* PATH not set
+* Missing environment variables
+* Relative paths used instead of absolute paths
+
+**Fix:**
+
+Use full paths:
+
+```bash id="6yo7kq"
+/usr/bin/python3 /home/user/script.py
+```
+
+Set PATH explicitly:
+
+```bash id="z5p5vn"
+PATH=/usr/bin:/bin
+```
+
+**Real scenario:**
+Script failed in cron because it used relative paths. After converting to absolute paths, it worked.
+
+**Key point:**
+Cron runs in a minimal environment, so always define everything explicitly.
+
 **Key point:**
 I follow a structured approach: service → logs → port → network instead of random checks.
