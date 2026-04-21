@@ -1,207 +1,103 @@
-# Day 1: Linux Fundamentals for DevOps (Real-Time + Interview Focus)
-
-## Why this matters
-
-In DevOps, Linux is part of everything you do.
-
-You don’t “use Linux separately” — you use it while:
-- Debugging application issues
-- Checking logs
-- Investigating failures
-- Managing servers
-
-In interviews, you will not be asked direct questions.
-
-You will be given situations.
+# Linux DevOps Interview Questions
 
 ---
 
-## How to think in Linux (Most important skill)
+## 1. Production & Troubleshooting
 
-Before jumping into commands, always think:
-
-1. Where am I?
-2. What am I looking for?
-3. Where is it usually located?
-4. What changed recently?
-
-This thinking is what interviewers expect.
+1. Your server CPU suddenly spikes to 100%. How do you identify the root cause?
+2. A process is consuming high memory but you don’t know which one. How do you find and fix it?
+3. A production server becomes slow at random times. What steps will you take to troubleshoot?
+4. Disk space is 100% full on `/`. How will you handle it without downtime?
+5. A service is down but the server is running. How do you debug this?
 
 ---
 
-## Scenario 1: Logs are not visible in production
+## 2. Processes & System Behavior
 
-You log into a server.
-
-The application team says:
-“Logs are not being generated.”
-
----
-
-### Step-by-step approach
-
-Step 1: Check current location  
-pwd  
-
-Step 2: List files (focus on latest changes)  
-ls -lrt  
-
-Step 3: Move to standard log directories  
-cd /var/log  
-
-Step 4: Identify relevant logs  
-ls -lrt  
-
-Step 5: If not found, search  
-find / -name "*.log" 2>/dev/null  
+6. A process is stuck and not getting killed even with `kill -9`. What will you do?
+7. How do you find which process is using a specific port (e.g., 8080)?
+8. You accidentally started a process in the foreground. How do you move it to background without stopping it?
+9. What happens internally when you run a command in Linux?
+10. What is the difference between zombie and orphan processes? How do you handle them in real-time?
 
 ---
 
-### Real-world insight
+## 3. File System & Storage
 
-In many cases, logs are:
-- Written in custom directories  
-- Misconfigured  
-- Not generated due to permission issues  
-
----
-
-## Core Linux commands every DevOps engineer uses
-
-### 1. Navigation & File Discovery
-
-| Command | Why it matters |
-|--------|--------------|
-| pwd | Know current path |
-| ls -lrt | Identify recent changes |
-| cd | Move quickly across system |
-| find | Locate files when unknown |
+11. How do you find large files in a server quickly?
+12. What will you do if inode usage is 100% but disk space is available?
+13. Explain a real-time scenario where symbolic links are useful.
+14. How do you recover a deleted file in Linux?
+15. What is the difference between soft link and hard link with a real use case?
 
 ---
 
-### 2. Log Analysis (very important in real projects)
+## 4. Networking
 
-| Command | Use case |
-|--------|--------|
-| cat | Quick file view |
-| less | Read large files safely |
-| tail -f | Monitor logs in real time |
-
-Example:
-tail -f app.log
+16. A server is not reachable. How do you troubleshoot step by step?
+17. How do you check if a port is open or not on a remote server?
+18. DNS is not resolving on your server. What will you check?
+19. What is the difference between `netstat`, `ss`, and `lsof` in real-time usage?
+20. Your application cannot connect to a database. How will you debug it?
 
 ---
 
-### 3. Process Debugging
+## 5. Permissions & Security
 
-#### Scenario:
-Application is down or not responding
-
-Commands:
-ps -ef | grep <app>  
-top  
-
-To stop process:
-kill -9 <pid>  
+21. A user cannot access a file even though permissions look correct. What could be wrong?
+22. What is the difference between `chmod 777` and `chmod 755` in real-world impact?
+23. How do you give sudo access to a user safely?
+24. What are sticky bit, SUID, and SGID? Explain with real-time usage.
+25. A script runs manually but fails in cron. Why?
 
 ---
 
-### What interviewer expects
+## 6. Logs & Monitoring
 
-- Can you identify the process?
-- Do you know how to stop or restart it safely?
-
----
-
-### 4. Disk Space Issues
-
-#### Scenario:
-Application suddenly stopped working
-
-Commands:
-df -h  
-du -sh *  
+26. Where do you check logs for system issues?
+27. How do you monitor logs in real-time for errors?
+28. Your application logs are growing rapidly. How do you manage them?
+29. What is log rotation and why is it important?
+30. How do you debug a failed systemd service?
 
 ---
 
-### Real-world insight
+## 7. Package & System Management
 
-Disk full is one of the most common production issues.
-
----
-
-### 5. Permissions (frequent interview topic)
-
-Commands:
-ls -l  
-chmod  
-chown  
+31. How do you check installed packages in Linux?
+32. A package installation failed due to dependencies. How do you resolve it?
+33. What is the difference between `apt` and `yum` in real-world usage?
+34. How do you update a system without breaking running services?
+35. How do you check OS version and kernel details?
 
 ---
 
-### Scenario:
-Application cannot write logs
+## 8. Cron & Automation
 
-Most likely reason:
-Permission issue
-
----
-
-## How everything connects in real scenarios
-
-Example:
-
-Logs not generating →  
-Check path →  
-Check permissions →  
-Check disk space →  
-Check process  
-
-This is how real debugging works.
+36. A cron job is not running. How do you debug it?
+37. How do you schedule a job to run every 5 minutes?
+38. What is the difference between `cron` and `at`?
+39. Where are cron logs stored?
+40. How do you prevent overlapping cron jobs?
 
 ---
 
-## Common mistakes candidates make
+## 9. DevOps-Oriented Linux
 
-- Treating commands as theory  
-- Not understanding real use cases  
-- Jumping into random commands  
-- Not checking logs first  
-
----
-
-## Interview Answer (Strong and practical)
-
-“In my day-to-day work, I use Linux mainly for debugging issues.
-
-For example, if logs are not visible, I start by navigating to standard locations like /var/log and use `ls -lrt` to identify recent files.
-
-If needed, I use `find` to locate logs.
-
-For system issues, I check processes using `ps` and `top`, and disk usage using `df -h`.
-
-My approach is always to understand the problem first and then use the appropriate commands based on the situation.”
+41. How does Linux support containers like Docker?
+42. What are namespaces and cgroups in Linux?
+43. How do you debug a Docker container that is not starting?
+44. How do you check resource usage of containers from Linux?
+45. How does Linux handle networking for containers?
 
 ---
 
-## Practice Questions (Very Important)
+## 10. Advanced / Real Interview Level
 
-Try answering these:
-
-1. Logs are not generating — what will you check?
-2. Application is slow — what Linux commands will you use?
-3. Disk is full — how will you identify large files?
-4. Process is stuck — how will you handle it?
+46. What happens when a system runs out of memory (OOM)?
+47. What is OOM killer and how do you debug it?
+48. How do you tune Linux performance for high traffic applications?
+49. What is load average and how do you interpret it?
+50. How do you troubleshoot high I/O wait?
 
 ---
-
-## Key takeaway
-
-Linux is not about commands.
-
-It is about:
-- Understanding the system
-- Knowing where to look
-- Debugging step by step
-
-If you can explain your approach clearly, you can clear most DevOps interviews.
