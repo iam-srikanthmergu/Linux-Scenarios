@@ -1611,6 +1611,201 @@ A backup script overlapped and caused high load. Using `flock` prevented multipl
 
 **Key point:**
 Always control concurrency in scheduled jobs to avoid performance issues.
+## 41. How does Linux support containers like Docker?
+
+**Answer:**
+
+Linux provides core features that make containers possible:
+
+* **Namespaces** → isolate resources (processes, network, filesystem)
+* **cgroups (control groups)** → limit CPU, memory, and I/O usage
+* **Union file systems** → layered file storage (used by Docker images)
+
+Check cgroups:
+
+```bash id="r9k7zx"
+cat /proc/cgroups
+```
+
+Check processes in namespaces:
+
+```bash id="s4w9jt"
+lsns
+```
+
+**Explanation:**
+
+* Containers are not VMs; they share the host kernel
+* Isolation + resource control = containerization
+
+**Real scenario:**
+While debugging container resource issues, I checked cgroup limits to understand CPU throttling.
+
+**Key point:**
+Docker is built on Linux kernel features, not a separate virtualization layer.
+
+## 42. What is namespace and cgroups in Linux?
+
+**Answer:**
+
+**Namespaces:**
+
+* Provide isolation
+* Each container sees its own environment
+
+Types:
+
+* PID → process isolation
+* NET → network isolation
+* MNT → filesystem isolation
+
+Check namespaces:
+
+```bash id="4b2vkg"
+lsns
+```
+
+**cgroups:**
+
+* Control resource usage
+
+Check limits:
+
+```bash id="9q8e7d"
+cat /sys/fs/cgroup/memory.max
+```
+
+**Explanation:**
+
+* Namespace = isolation
+* cgroups = resource control
+
+**Real scenario:**
+A container was getting killed due to memory limit. After checking cgroups, I increased memory allocation.
+
+**Key point:**
+Both work together to provide container behavior.
+
+## 43. How do you debug a Docker container that is not starting?
+
+**Answer:**
+
+Check container status:
+
+```bash id="s6ljbw"
+docker ps -a
+```
+
+Check logs:
+
+```bash id="zpm64v"
+docker logs <container-id>
+```
+
+Inspect container:
+
+```bash id="9k0w8s"
+docker inspect <container-id>
+```
+
+Run interactively:
+
+```bash id="qg52u8"
+docker run -it <image> /bin/bash
+```
+
+**What I check:**
+
+* Application errors
+* Port conflicts
+* Missing dependencies
+* Incorrect CMD/ENTRYPOINT
+
+**Real scenario:**
+Container failed due to wrong startup command. Logs showed error, fixed Dockerfile CMD.
+
+**Key point:**
+Always start with logs before changing configuration.
+
+## 44. How do you check resource usage of containers from Linux?
+
+**Answer:**
+
+Basic Docker command:
+
+```bash id="a8o1tp"
+docker stats
+```
+
+* Shows CPU, memory, network usage in real-time
+
+Check container processes:
+
+```bash id="9fzzbw"
+docker top <container-id>
+```
+
+From host level:
+
+```bash id="kqoz9y"
+top
+```
+
+or
+
+```bash id="rj3k5k"
+htop
+```
+
+**Explanation:**
+
+* docker stats → container-level view
+* top/htop → system-level view
+
+**Real scenario:**
+One container was consuming excessive CPU. Identified using `docker stats` and scaled it horizontally.
+
+**Key point:**
+Always monitor both container and host resources.
+
+## 45. How does Linux handle networking for containers?
+
+**Answer:**
+
+Docker creates virtual networks using:
+
+* **Bridge network (default)**
+* **Host network**
+* **Overlay network (for multi-host setups)**
+
+Check networks:
+
+```bash id="mhhkqg"
+docker network ls
+```
+
+Inspect network:
+
+```bash id="br0g6x"
+docker network inspect bridge
+```
+
+Check container IP:
+
+```bash id="y8hx0m"
+docker inspect <container-id> | grep IPAddress
+```
+
+**Explanation:**
+
+* Each container gets its own IP (in bridge mode)
+* NAT is used to expose ports to host
+
+**Real scenario:**
+Application was not reachable because port mapping was missing (`-p 8080:8080`). After exposing port, it worked.
+
+**Key point:**
+Container networking depends on proper configuration of ports and networks.
 
 **Key point:**
 I follow a structured approach: service → logs → port → network instead of random checks.
