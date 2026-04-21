@@ -594,6 +594,224 @@ Soft links used for application version switching. Hard links used for backup op
 **Key point:**
 Soft links are commonly used in DevOps deployments.
 
+## 16. A server is not reachable. How do you troubleshoot step by step?
+
+**Answer:**
+
+Start with basic network connectivity:
+
+```bash
+ping <server-ip>
+```
+
+* Checks if the server is reachable over the network
+
+If ping fails, check route:
+
+```bash
+traceroute <server-ip>
+```
+
+* Shows where the connection is failing in the network path
+
+Check if SSH port is open:
+
+```bash
+nc -zv <server-ip> 22
+```
+
+or
+
+```bash
+telnet <server-ip> 22
+```
+
+If you have access via console/cloud:
+
+Check network configuration:
+
+```bash
+ip a
+```
+
+Check routing:
+
+```bash
+ip route
+```
+
+Check firewall:
+
+```bash
+iptables -L
+```
+
+**Real scenario:**
+A server was unreachable due to a wrong security group rule in cloud. Port 22 was blocked. After updating rules, access was restored.
+
+**Key point:**
+Always follow layered troubleshooting: network → port → firewall → server config.
+
+## 17. How do you check if a port is open or not on a remote server?
+
+**Answer:**
+
+Use netcat:
+
+```bash
+nc -zv <server-ip> 80
+```
+
+* `z` → scan mode
+* `v` → verbose output
+
+Alternative:
+
+```bash
+telnet <server-ip> 80
+```
+
+If connected → port is open
+If connection refused → port closed or service down
+
+Another method:
+
+```bash
+nmap -p 80 <server-ip>
+```
+
+* Scans specific port
+
+**Real scenario:**
+Application was not accessible because port 8080 was not exposed. Verified using nc and fixed firewall rules.
+
+**Key point:**
+Always confirm port availability before debugging application.
+
+## 18. DNS is not resolving in your server. What will you check?
+
+**Answer:**
+
+Check DNS resolution:
+
+```bash
+nslookup google.com
+```
+
+or
+
+```bash
+dig google.com
+```
+
+Check DNS configuration:
+
+```bash
+cat /etc/resolv.conf
+```
+
+* Shows configured DNS servers
+
+Test connectivity to DNS server:
+
+```bash
+ping <dns-server-ip>
+```
+
+Check local hostname resolution:
+
+```bash
+cat /etc/hosts
+```
+
+**Real scenario:**
+DNS was not resolving because `/etc/resolv.conf` had wrong nameserver. Updating it fixed the issue.
+
+**Key point:**
+DNS issues are often configuration-related, not network.
+
+## 19. Difference between netstat, ss, and lsof in real-time usage?
+
+**Answer:**
+
+**netstat:**
+
+```bash
+netstat -tulnp
+```
+
+* Older tool
+* Shows listening ports and connections
+
+**ss:**
+
+```bash
+ss -tulnp
+```
+
+* Faster and modern replacement for netstat
+* Preferred in most systems
+
+**lsof:**
+
+```bash
+lsof -i :80
+```
+
+* Shows which process is using a port
+
+**Explanation:**
+
+* `ss` → best for checking ports and connections
+* `lsof` → best for mapping ports to processes
+
+**Real scenario:**
+Used `ss` to check port availability and `lsof` to identify which process was holding the port.
+
+**Key point:**
+Use ss for speed, lsof for detailed process mapping.
+
+## 20. Your application cannot connect to DB. How will you debug?
+
+**Answer:**
+
+Step 1: Check DB connectivity
+
+```bash
+ping <db-server-ip>
+```
+
+Step 2: Check port accessibility
+
+```bash
+nc -zv <db-server-ip> 3306
+```
+
+Step 3: Verify DB service on server
+
+```bash
+systemctl status mysql
+```
+
+Step 4: Check application configuration
+
+* DB host
+* Port
+* Username/password
+
+Step 5: Check logs
+
+```bash
+journalctl -u <app-service>
+```
+
+or application logs
+
+**Real scenario:**
+Application failed to connect because DB port was blocked in firewall. After opening port 3306, connection worked.
+
+**Key point:**
+Always verify network → port → service → credentials in order.
 
 **Key point:**
 I follow a structured approach: service → logs → port → network instead of random checks.
