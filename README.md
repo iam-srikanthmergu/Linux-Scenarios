@@ -1196,6 +1196,225 @@ A service failed due to incorrect file path in configuration. Logs from `journal
 
 **Key point:**
 Always check `systemctl status` and `journalctl` before making changes.
+## 31. How do you check installed packages in Linux?
+
+**Answer:**
+
+It depends on the distribution.
+
+For Debian/Ubuntu:
+
+```bash
+dpkg -l
+```
+
+or
+
+```bash
+apt list --installed
+```
+
+For RHEL/CentOS:
+
+```bash
+yum list installed
+```
+
+or
+
+```bash
+rpm -qa
+```
+
+**To check a specific package:**
+
+```bash
+dpkg -l | grep nginx
+```
+
+or
+
+```bash
+rpm -qa | grep nginx
+```
+
+**Explanation:**
+
+* `dpkg` / `rpm` → low-level package tools
+* `apt` / `yum` → higher-level package managers
+
+**Real scenario:**
+While debugging an issue, I verified whether a required package was installed before proceeding with configuration.
+
+**Key point:**
+Always confirm package availability before troubleshooting further.
+
+## 32. A package installation failed due to dependencies. How do you resolve it?
+
+**Answer:**
+
+For Debian/Ubuntu:
+
+```bash
+apt-get install -f
+```
+
+* Fixes broken dependencies
+
+```bash
+apt-get update
+apt-get upgrade
+```
+
+For RHEL/CentOS:
+
+```bash
+yum install <package> --skip-broken
+```
+
+or
+
+```bash
+yum deplist <package>
+```
+
+**Manual approach:**
+
+* Identify missing dependencies
+* Install them individually
+
+**Explanation:**
+Dependency issues happen when required libraries are missing or incompatible versions exist.
+
+**Real scenario:**
+A package failed due to missing library version. After updating repo and installing dependency manually, installation succeeded.
+
+**Key point:**
+Always resolve dependencies instead of forcing installation.
+
+## 33. Difference between apt and yum in real-world usage?
+
+**Answer:**
+
+**apt (Debian/Ubuntu):**
+
+```bash
+apt update
+apt install nginx
+```
+
+**yum (RHEL/CentOS):**
+
+```bash
+yum install nginx
+```
+
+**Differences:**
+
+* apt → uses `.deb` packages
+* yum → uses `.rpm` packages
+* apt → faster dependency resolution (generally)
+* yum → widely used in enterprise environments
+
+(Newer systems use `dnf` instead of yum)
+
+**Real scenario:**
+In multi-cloud environments, I handled Ubuntu servers with apt and RHEL servers with yum/dnf.
+
+**Key point:**
+Concept is same, only commands differ.
+
+## 34. How do you update a system without breaking running services?
+
+**Answer:**
+
+First, check available updates:
+
+```bash
+apt list --upgradable
+```
+
+or
+
+```bash
+yum check-update
+```
+
+Apply updates carefully:
+
+```bash
+apt upgrade
+```
+
+or
+
+```bash
+yum update
+```
+
+**Best practices:**
+
+* Avoid updating everything blindly
+* Update critical packages only if needed
+* Take backup or snapshot before update
+* Perform updates during maintenance window
+
+**Check if reboot is required:**
+
+```bash
+reboot
+```
+
+or on Ubuntu:
+
+```bash
+/var/run/reboot-required
+```
+
+**Real scenario:**
+Before patching a production server, I took a snapshot, applied updates, and verified application health before proceeding.
+
+**Key point:**
+Always minimize risk by planning updates.
+
+## 35. How do you check OS version and kernel details?
+
+**Answer:**
+
+Check OS version:
+
+```bash
+cat /etc/os-release
+```
+
+or
+
+```bash
+lsb_release -a
+```
+
+Check kernel version:
+
+```bash
+uname -r
+```
+
+Full system info:
+
+```bash
+uname -a
+```
+
+**Explanation:**
+
+* OS version → distribution details
+* Kernel → core of the operating system
+
+**Real scenario:**
+While debugging compatibility issues, I checked kernel version to verify support for a specific feature.
+
+**Key point:**
+OS and kernel details are important for troubleshooting and compatibility checks.
 
 **Key point:**
 I follow a structured approach: service → logs → port → network instead of random checks.
