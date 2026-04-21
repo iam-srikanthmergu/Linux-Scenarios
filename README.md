@@ -1001,6 +1001,201 @@ Script failed in cron because it used relative paths. After converting to absolu
 
 **Key point:**
 Cron runs in a minimal environment, so always define everything explicitly.
+## 26. Where do you check logs for system issues?
+
+**Answer:**
+
+First place I check is system logs:
+
+```bash
+/var/log/
+```
+
+Common log files:
+
+* `/var/log/syslog` → general system logs (Debian/Ubuntu)
+* `/var/log/messages` → system logs (RHEL/CentOS)
+* `/var/log/auth.log` → authentication logs
+* `/var/log/kern.log` → kernel logs
+
+Using journal (systemd-based systems):
+
+```bash
+journalctl -xe
+```
+
+* Shows recent system errors with detailed context
+
+**Real scenario:**
+A service was failing during startup. `journalctl -xe` showed a permission error which helped identify the issue quickly.
+
+**Key point:**
+Always start with system logs before going to application-specific logs.
+
+## 27. How do you monitor logs in real-time for errors?
+
+**Answer:**
+
+Basic real-time monitoring:
+
+```bash
+tail -f /var/log/syslog
+```
+
+* Continuously streams new log entries
+
+For filtering specific keywords:
+
+```bash
+tail -f /var/log/syslog | grep ERROR
+```
+
+Alternative:
+
+```bash
+less +F /var/log/syslog
+```
+
+* Similar to tail but allows scrolling back
+
+**Explanation:**
+
+* `tail -f` is useful during deployments or debugging live issues
+
+**Real scenario:**
+During deployment, I monitored logs using `tail -f` to quickly catch application errors and fix them immediately.
+
+**Key point:**
+Real-time log monitoring helps reduce debugging time during incidents.
+
+## 28. Your application logs are growing rapidly. How do you manage them?
+
+**Answer:**
+
+First, confirm log size:
+
+```bash
+du -sh /var/log/*
+```
+
+Immediate action (if disk is filling):
+
+```bash
+truncate -s 0 /var/log/app.log
+```
+
+Then implement log rotation using:
+
+```bash
+/etc/logrotate.conf
+```
+
+or create custom config:
+
+```bash
+/etc/logrotate.d/app
+```
+
+Example:
+
+```bash
+/var/log/app.log {
+    daily
+    rotate 7
+    compress
+    missingok
+    notifempty
+}
+```
+
+**Explanation:**
+
+* Keeps limited number of logs
+* Compresses old logs
+* Prevents disk overflow
+
+**Real scenario:**
+An application log grew to several GB. I truncated it immediately and added logrotate configuration.
+
+**Key point:**
+Always combine immediate cleanup with a permanent solution.
+
+## 29. What is log rotation and why is it important?
+
+**Answer:**
+
+Log rotation is the process of:
+
+* Archiving old logs
+* Creating new log files
+* Compressing old logs
+* Deleting older logs after a limit
+
+**Check configuration:**
+
+```bash
+cat /etc/logrotate.conf
+```
+
+Manual run:
+
+```bash
+logrotate -f /etc/logrotate.conf
+```
+
+**Why it is important:**
+
+* Prevents disk space issues
+* Keeps logs manageable
+* Improves system performance
+
+**Real scenario:**
+Without log rotation, logs filled the disk and caused application downtime. After configuring logrotate, issue was permanently resolved.
+
+**Key point:**
+Log rotation is essential for production systems to avoid outages.
+
+## 30. How do you debug a failed systemd service?
+
+**Answer:**
+
+Check service status:
+
+```bash
+systemctl status <service-name>
+```
+
+* Shows current state and recent logs
+
+Check detailed logs:
+
+```bash
+journalctl -u <service-name>
+```
+
+Check for configuration issues:
+
+* Incorrect paths
+* Permission issues
+* Missing dependencies
+
+Try restarting:
+
+```bash
+systemctl restart <service-name>
+```
+
+If needed, reload daemon:
+
+```bash
+systemctl daemon-reexec
+```
+
+**Real scenario:**
+A service failed due to incorrect file path in configuration. Logs from `journalctl` clearly showed the error.
+
+**Key point:**
+Always check `systemctl status` and `journalctl` before making changes.
 
 **Key point:**
 I follow a structured approach: service → logs → port → network instead of random checks.
