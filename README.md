@@ -1415,6 +1415,202 @@ While debugging compatibility issues, I checked kernel version to verify support
 
 **Key point:**
 OS and kernel details are important for troubleshooting and compatibility checks.
+## 36. A cron job is not running. How do you debug it?
+
+**Answer:**
+
+First, check if cron service is running:
+
+```bash
+systemctl status cron
+```
+
+(or `crond` on RHEL/CentOS)
+
+Check scheduled jobs:
+
+```bash
+crontab -l
+```
+
+Check logs:
+
+```bash
+grep CRON /var/log/syslog
+```
+
+(or `/var/log/cron` in RHEL)
+
+**Things I verify:**
+
+* Correct schedule format
+* Script path is absolute
+* Script has execute permission
+
+```bash
+chmod +x script.sh
+```
+
+* Environment variables (PATH)
+
+**Real scenario:**
+A cron job failed because the script used relative paths. After changing to absolute paths, it worked.
+
+**Key point:**
+Cron runs in a minimal environment, so always define full paths and permissions.
+
+## 37. How do you schedule a job to run every 5 minutes?
+
+**Answer:**
+
+Edit crontab:
+
+```bash
+crontab -e
+```
+
+Add:
+
+```bash
+*/5 * * * * /path/to/script.sh
+```
+
+**Explanation of format:**
+
+```
+* * * * *
+| | | | |
+| | | | └── Day of week
+| | | └──── Month
+| | └────── Day of month
+| └──────── Hour
+└────────── Minute
+```
+
+* `*/5` means every 5 minutes
+
+**Real scenario:**
+Used this to run health-check scripts periodically for monitoring.
+
+**Key point:**
+Always test cron expression before using in production.
+
+## 38. Difference between cron and at?
+
+**Answer:**
+
+**cron:**
+
+* Used for recurring jobs
+* Runs at scheduled intervals
+
+Example:
+
+```bash
+0 2 * * * backup.sh
+```
+
+**at:**
+
+* Used for one-time execution
+
+```bash
+at 10:00
+```
+
+Then type command and press Ctrl+D
+
+**Check at jobs:**
+
+```bash
+atq
+```
+
+**Explanation:**
+
+* cron → repetitive tasks
+* at → one-time tasks
+
+**Real scenario:**
+Used `at` to schedule a one-time server restart after maintenance.
+
+**Key point:**
+Use cron for automation, at for temporary scheduling.
+
+## 39. Where are cron logs stored?
+
+**Answer:**
+
+Depends on distribution:
+
+Ubuntu/Debian:
+
+```bash
+/var/log/syslog
+```
+
+Check logs:
+
+```bash
+grep CRON /var/log/syslog
+```
+
+RHEL/CentOS:
+
+```bash
+/var/log/cron
+```
+
+Check logs:
+
+```bash
+cat /var/log/cron
+```
+
+**Explanation:**
+
+* Logs help confirm whether cron job executed or failed
+
+**Real scenario:**
+A cron job was not running. Logs showed permission denied error, which helped fix the issue.
+
+**Key point:**
+Always check logs when cron jobs fail.
+
+## 40. How do you prevent overlapping cron jobs?
+
+**Answer:**
+
+Use `flock`:
+
+```bash
+* * * * * flock -n /tmp/script.lock /path/to/script.sh
+```
+
+* Prevents multiple instances from running
+
+Alternative (manual lock file):
+
+```bash
+if [ -f /tmp/script.lock ]; then
+  exit 1
+fi
+touch /tmp/script.lock
+
+# run script
+
+rm -f /tmp/script.lock
+```
+
+**Explanation:**
+
+* Ensures only one instance runs at a time
+
+**Real scenario:**
+A backup script overlapped and caused high load. Using `flock` prevented multiple executions.
+
+**Key point:**
+Always control concurrency in scheduled jobs to avoid performance issues.
 
 **Key point:**
 I follow a structured approach: service → logs → port → network instead of random checks.
