@@ -247,5 +247,353 @@ iptables -L
 **Real scenario:**
 Nginx failed due to a syntax error in configuration. Logs clearly showed the issue. After fixing config, service started successfully.
 
+## 6. A process is stuck and not getting killed even with kill -9. What will you do?
+
+**Answer:**
+
+First, I try normal termination:
+
+```bash
+kill -15 <pid>
+```
+
+* Sends SIGTERM (graceful shutdown)
+
+If that doesn’t work:
+
+```bash
+kill -9 <pid>
+```
+
+* Forces termination (SIGKILL)
+
+If the process is still not killed, I check its state:
+
+```bash
+ps -o pid,stat,cmd -p <pid>
+```
+
+* If state shows `D` → uninterruptible sleep (usually waiting on disk I/O)
+
+**What it means:**
+
+* Process is stuck in kernel-level operation (disk, NFS, etc.)
+* Even kill -9 cannot terminate it
+
+**Next steps:**
+
+* Check disk/NFS issues
+* As last resort → reboot the server
+
+**Real scenario:**
+A process was stuck due to NFS mount issue. It stayed in D state and only got cleared after fixing mount and reboot.
+
+**Key point:**
+If a process is in D state, killing won’t help — need to fix underlying I/O issue.
+
+## 7. How do you find which process is using a specific port (e.g., 8080)?
+
+**Answer:**
+
+Use:
+
+```bash
+lsof -i :8080
+```
+
+* Shows process using the port with PID
+
+Alternative:
+
+```bash
+ss -tulnp | grep 8080
+```
+
+* Faster and more modern than netstat
+* Shows listening ports and associated processes
+
+**Explanation:**
+
+* Helps identify which service is bound to a port
+* Useful during deployment conflicts
+
+**Real scenario:**
+While deploying a new app, port 8080 was already in use by an old process. I identified and killed it before restarting the new service.
+
+**Key point:**
+Always check port usage before starting services to avoid conflicts.
+
+## 8. You accidentally started a process in the foreground. How do you move it to background without stopping it?
+
+**Answer:**
+
+First, suspend the process:
+
+Press:
+
+```
+Ctrl + Z
+```
+
+Then move it to background:
+
+```bash
+bg
+```
+
+To detach it completely:
+
+```bash
+disown
+```
+
+**Alternative (better approach):**
+
+Start process with:
+
+```bash
+nohup <command> &
+```
+
+* Runs process in background even after logout
+
+**Explanation:**
+
+* Foreground → blocks terminal
+* Background → runs independently
+
+**Real scenario:**
+While running a long script, I forgot to use nohup. I moved it to background using Ctrl+Z and bg without stopping execution.
+
+**Key point:**
+Knowing job control avoids restarting long-running tasks.
+
+## 9. What happens internally when you run a command in Linux?
+
+**Answer:**
+
+When a command is executed:
+
+1. Shell receives the command (bash)
+2. Shell searches command in PATH
+3. Forks a new process
+4. Executes command using `exec`
+5. Waits for process to complete
+
+**You can verify PATH:**
+
+```bash
+echo $PATH
+```
+
+**Check command location:**
+
+```bash
+which ls
+```
+
+**Explanation:**
+
+* `fork()` creates a child process
+* `exec()` replaces it with actual command
+
+**Real understanding:**
+Every command you run is a process created by the shell.
+
+**Key point:**
+Understanding this helps in debugging process-related issues and scripting.
+
+## 10. Difference between zombie and orphan processes? How do you handle them in real-time?
+
+**Answer:**
+
+**Zombie Process:**
+
+* Process finished execution but still in process table
+* Parent has not read exit status
+
+Check zombies:
+
+```bash
+ps aux | grep Z
+```
+
+**Orphan Process:**
+
+* Parent process is terminated
+* Child is adopted by init/systemd
+
+**Handling zombie:**
+
+* Restart parent process
+* Or kill parent process so init takes over
+
+**Handling orphan:**
+
+* Usually no issue (handled by system)
+
+**Real scenario:**
+An application was creating zombie processes due to improper child handling. Restarting parent process cleared them.
+
+**Key point:**
+Zombies don’t consume CPU but can exhaust process table if not handled.
+
+## 11. How do you find large files in a server quickly?
+
+**Answer:**
+
+Use:
+
+```bash
+find / -type f -size +500M
+```
+
+* Finds files larger than 500MB
+
+Sort directories by size:
+
+```bash
+du -sh /* | sort -h
+```
+
+* Helps identify which directories are consuming space
+
+**Explanation:**
+
+* `find` → file-level search
+* `du` → directory-level analysis
+
+**Real scenario:**
+A backup file accidentally stored in `/tmp` was consuming several GB. Identified and removed using find.
+
+**Key point:**
+Quick identification helps prevent downtime due to disk issues.
+
+## 12. What will you do if inode usage is 100% but disk space is available?
+
+**Answer:**
+
+Check inode usage:
+
+```bash
+df -i
+```
+
+**Explanation:**
+
+* Inodes track number of files, not size
+* Too many small files → inode exhaustion
+
+Find directories with many files:
+
+```bash
+find / -xdev -type f | wc -l
+```
+
+or:
+
+```bash
+du --inodes -d 2 / | sort -n
+```
+
+**Fix:**
+
+* Remove unnecessary small files
+* Clean logs or temp directories
+
+**Real scenario:**
+Application logs created millions of tiny files. Disk had space but inode limit was hit. Cleaning files resolved it.
+
+**Key point:**
+“No space left” is not always disk — sometimes inode limit.
+
+## 13. Explain a real-time scenario where symbolic links are useful.
+
+**Answer:**
+
+Create symbolic link:
+
+```bash
+ln -s /var/log/app.log /home/user/app.log
+```
+
+**Explanation:**
+
+* Soft link points to original file path
+* Useful for shortcuts and versioning
+
+**Real scenario:**
+In deployments, we used symbolic links like:
+
+```
+current -> release_v2
+```
+
+Switching versions was as simple as updating the symlink.
+
+**Key point:**
+Symbolic links are widely used in deployments and configuration management.
+
+## 14. How do you recover a deleted file in Linux?
+
+**Answer:**
+
+If file is deleted normally:
+
+* Recovery is difficult unless backup exists
+
+**Check open file still in use:**
+
+```bash
+lsof | grep deleted
+```
+
+* If process still holds file → data can be recovered
+
+**Best practice:**
+
+* Use backups (rsync, snapshots)
+* Use version control where possible
+
+**Real scenario:**
+A log file was deleted but still open by a process. We copied data from `/proc/<pid>/fd/` and recovered it.
+
+**Key point:**
+Prevention (backups) is better than recovery.
+
+## 15. Difference between soft link and hard link with real use case?
+
+**Answer:**
+
+**Soft Link:**
+
+```bash
+ln -s file1 softlink
+```
+
+* Points to file path
+* Breaks if original file is deleted
+
+**Hard Link:**
+
+```bash
+ln file1 hardlink
+```
+
+* Points to same inode
+* Works even if original file is deleted
+
+**Key differences:**
+
+* Soft link → flexible, cross-filesystem
+* Hard link → more robust, same filesystem only
+
+**Real scenario:**
+Soft links used for application version switching. Hard links used for backup optimization.
+
+**Key point:**
+Soft links are commonly used in DevOps deployments.
+
+
 **Key point:**
 I follow a structured approach: service → logs → port → network instead of random checks.
