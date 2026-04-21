@@ -1809,3 +1809,211 @@ Container networking depends on proper configuration of ports and networks.
 
 **Key point:**
 I follow a structured approach: service → logs → port → network instead of random checks.
+## 46. What happens when a system runs out of memory (OOM)?
+
+**Answer:**
+
+When system memory is exhausted:
+
+* New processes cannot be allocated memory
+* Existing processes may fail or crash
+* Linux triggers the **OOM (Out Of Memory) Killer**
+
+Check memory usage:
+
+```bash id="zz9z2j"
+free -m
+```
+
+Check system activity:
+
+```bash id="b7q1e7"
+top
+```
+
+**Explanation:**
+
+* When RAM + swap are full, the kernel takes action
+* It selects and kills processes to free memory
+
+**Real scenario:**
+A Java application consumed all memory, causing system instability. The OOM killer terminated it automatically.
+
+**Key point:**
+Memory exhaustion can bring the entire system down if not handled.
+
+## 47. What is OOM killer and how do you debug it?
+
+**Answer:**
+
+OOM killer is a Linux kernel mechanism that:
+
+* Automatically kills processes when memory is exhausted
+* Selects process based on memory usage and priority
+
+Check OOM logs:
+
+```bash id="8o5vyt"
+dmesg | grep -i kill
+```
+
+or
+
+```bash id="csx2qz"
+journalctl -k | grep -i oom
+```
+
+Check process memory usage:
+
+```bash id="s3q47z"
+ps aux --sort=-%mem | head
+```
+
+**Explanation:**
+
+* Processes with higher memory usage are more likely to be killed
+* `oom_score` influences selection
+
+**Real scenario:**
+A container was repeatedly getting killed. Logs showed OOM events. Increasing memory limits fixed the issue.
+
+**Key point:**
+Always correlate OOM logs with application crashes.
+
+## 48. How do you tune Linux performance for high traffic applications?
+
+**Answer:**
+
+**1. CPU & process tuning:**
+
+```bash id="3d7yz2"
+top
+```
+
+**2. Memory tuning:**
+
+```bash id="s6bq3l"
+free -m
+```
+
+**3. File descriptor limits:**
+
+```bash id="0m9zfw"
+ulimit -n
+```
+
+Increase in config:
+
+```id="qmvz9w"
+/etc/security/limits.conf
+```
+
+**4. Kernel tuning (sysctl):**
+
+```bash id="d8nt4g"
+sysctl -a
+```
+
+Example:
+
+```id="y3w92c"
+net.core.somaxconn = 1024
+```
+
+**5. Disk I/O tuning:**
+
+```bash id="8f1tpc"
+iostat -x 1 5
+```
+
+**Explanation:**
+
+* Optimize CPU, memory, network, and I/O
+* Remove bottlenecks based on workload
+
+**Real scenario:**
+For a high-traffic app, I increased file descriptor limits and tuned network parameters to handle more concurrent connections.
+
+**Key point:**
+Performance tuning is about identifying and removing bottlenecks.
+
+## 49. What is load average and how do you interpret it?
+
+**Answer:**
+
+Check load:
+
+```bash id="r7ytx8"
+uptime
+```
+
+Example output:
+
+```
+load average: 1.00, 0.80, 0.60
+```
+
+**Explanation:**
+
+* 1 min, 5 min, 15 min averages
+* Represents number of processes waiting for CPU
+
+**Interpretation:**
+
+* If system has 2 CPUs:
+
+  * Load = 2 → fully utilized
+  * Load > 2 → overloaded
+
+Check CPU cores:
+
+```bash id="q2r7tk"
+nproc
+```
+
+**Real scenario:**
+Load average was consistently higher than CPU cores, indicating CPU saturation. Scaling application resolved it.
+
+**Key point:**
+Always compare load average with number of CPU cores.
+
+## 50. How do you troubleshoot high I/O wait?
+
+**Answer:**
+
+Check I/O stats:
+
+```bash id="s8q2zr"
+iostat -x 1 5
+```
+
+* Look at `%iowait` and `%util`
+
+Check processes causing I/O:
+
+```bash id="k8kpw0"
+iotop
+```
+
+Check disk usage:
+
+```bash id="9o6p6s"
+df -h
+```
+
+**Explanation:**
+
+* High I/O wait means CPU is waiting for disk operations
+* Usually caused by heavy read/write operations
+
+**Fix approaches:**
+
+* Optimize application I/O
+* Move to faster storage (SSD)
+* Reduce logging or batch operations
+
+**Real scenario:**
+A backup job caused high disk usage, increasing I/O wait. Rescheduling it reduced the issue.
+
+**Key point:**
+High I/O wait is usually a storage bottleneck, not CPU issue.
